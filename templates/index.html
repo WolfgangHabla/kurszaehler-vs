@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurszähler VS</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+        }
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            color: #1a1a1a;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .controls label { font-weight: 600; }
+        .controls input[type="week"] {
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        .btn {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .btn:hover { background: #e8e8e8; }
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        .btn-primary:hover { background: #1d4ed8; }
+        #status {
+            margin-bottom: 1rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            display: none;
+        }
+        #status.error {
+            display: block;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+        #status.loading {
+            display: block;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+        .week-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 0.45rem 0.6rem;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+        }
+        th { background: #f9fafb; font-weight: 600; }
+        /* Group header row */
+        tr.group-header th {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #374151;
+            background: #f3f4f6;
+            border-bottom: 2px solid #d1d5db;
+        }
+        /* Sub-header row */
+        tr.sub-header th {
+            font-size: 0.75rem;
+            color: #6b7280;
+            background: #f9fafb;
+        }
+        /* Tag column: left-aligned */
+        td:first-child, th:first-child { text-align: left; }
+        /* Sum columns: bold background */
+        .sum-cell { font-weight: 700; background: #f0f9ff; }
+        th.sum-col { background: #e0f2fe; color: #0369a1; }
+        /* Separator between time groups */
+        .sep-left { border-left: 2px solid #9ca3af; }
+        tr:hover td { background: #f9fafb; }
+        tr:hover td.sum-cell { background: #e0f2fe; }
+        .number { font-variant-numeric: tabular-nums; }
+        /* Partial error styles */
+        .cell-error { color: #9ca3af; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>Kurszähler Villingen-Schwenningen</h1>
+
+    <div class="controls">
+        <label for="week-picker">Woche:</label>
+        <button class="btn" id="prev-btn" title="Vorherige Woche">&lt;&lt;</button>
+        <input type="week" id="week-picker">
+        <button class="btn" id="next-btn" title="Nächste Woche">&gt;&gt;</button>
+        <button class="btn btn-primary" id="load-btn">Laden</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="week-label" class="week-label"></div>
+
+    <table id="results" style="display:none">
+        <thead>
+            <tr class="group-header">
+                <th rowspan="2">Tag</th>
+                <th colspan="3" class="sep-left">Um 8:00</th>
+                <th colspan="3" class="sep-left">Um 9:00</th>
+                <th colspan="3" class="sep-left">Um 13:00</th>
+            </tr>
+            <tr class="sub-header">
+                <th class="sep-left">DHBW</th><th>HFU</th><th class="sum-col">Σ</th>
+                <th class="sep-left">DHBW</th><th>HFU</th><th class="sum-col">Σ</th>
+                <th class="sep-left">DHBW</th><th>HFU</th><th class="sum-col">Σ</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const weekPicker = document.getElementById('week-picker');
+        const loadBtn    = document.getElementById('load-btn');
+        const prevBtn    = document.getElementById('prev-btn');
+        const nextBtn    = document.getElementById('next-btn');
+        const status     = document.getElementById('status');
+        const weekLabel  = document.getElementById('week-label');
+        const resultsTable = document.getElementById('results');
+        const tbody      = resultsTable.querySelector('tbody');
+
+        function getCurrentWeekString() {
+            const now = new Date();
+            const jan4 = new Date(now.getFullYear(), 0, 4);
+            const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 1)) / 86400000) + 1;
+            const dow = jan4.getDay() || 7;
+            const weekNum = Math.ceil((dayOfYear + dow - 1) / 7);
+            return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+        }
+
+        weekPicker.value = getCurrentWeekString();
+
+        function weekToMonday(weekStr) {
+            const [yearStr, weekPart] = weekStr.split('-W');
+            const year = parseInt(yearStr);
+            const week = parseInt(weekPart);
+            const jan4 = new Date(year, 0, 4);
+            const dow = jan4.getDay() || 7;
+            const week1Monday = new Date(jan4);
+            week1Monday.setDate(jan4.getDate() - dow + 1);
+            const target = new Date(week1Monday);
+            target.setDate(week1Monday.getDate() + (week - 1) * 7);
+            return target;
+        }
+
+        function shiftWeek(delta) {
+            const monday = weekToMonday(weekPicker.value);
+            monday.setDate(monday.getDate() + delta * 7);
+            const year = monday.getFullYear();
+            const jan4 = new Date(year, 0, 4);
+            const dow = jan4.getDay() || 7;
+            const week1Monday = new Date(jan4);
+            week1Monday.setDate(jan4.getDate() - dow + 1);
+            const diff = Math.round((monday - week1Monday) / 86400000);
+            const week = Math.floor(diff / 7) + 1;
+            weekPicker.value = `${year}-W${String(week).padStart(2, '0')}`;
+        }
+
+        prevBtn.addEventListener('click', () => { shiftWeek(-1); loadData(); });
+        nextBtn.addEventListener('click', () => { shiftWeek(1);  loadData(); });
+        loadBtn.addEventListener('click', loadData);
+        weekPicker.addEventListener('change', loadData);
+
+        async function loadData() {
+            const val = weekPicker.value;
+            if (!val) return;
+
+            const monday = weekToMonday(val);
+            const day   = monday.getDate();
+            const month = monday.getMonth() + 1;
+            const year  = monday.getFullYear();
+            const params = `day=${day}&month=${month}&year=${year}`;
+
+            status.className = 'loading';
+            status.textContent = 'Lade DHBW + HFU Daten…';
+            status.style.display = 'block';
+            resultsTable.style.display = 'none';
+            weekLabel.textContent = '';
+
+            const [rapla, starplan] = await Promise.allSettled([
+                fetch(`/api/week?${params}`).then(r => r.json()),
+                fetch(`/api/starplan/week?${params}`).then(r => r.json()),
+            ]);
+
+            const raplaOk    = rapla.status === 'fulfilled' && !rapla.value.error;
+            const starplanOk = starplan.status === 'fulfilled' && !starplan.value.error;
+
+            if (!raplaOk && !starplanOk) {
+                status.className = 'error';
+                status.textContent = 'Beide Datenquellen nicht erreichbar.';
+                return;
+            }
+
+            status.style.display = 'none';
+
+            // Use week label from whichever source is available
+            const wk = raplaOk ? rapla.value.week : starplan.value.week;
+            weekLabel.textContent = wk || '';
+
+            // Build merged day list (Mon-Fri from DHBW; HFU may include Sat)
+            const rapladays    = raplaOk    ? rapla.value.days    : [];
+            const starplandays = starplanOk ? starplan.value.days : [];
+            // Use the longer list for row count, default to 5 (Mon-Fri)
+            const numDays = Math.max(rapladays.length, starplandays.length, 5);
+
+            const TIMES = ['0800', '0900', '1300'];
+
+            tbody.innerHTML = '';
+            for (let i = 0; i < numDays; i++) {
+                const rd = rapladays[i];
+                const sd = starplandays[i];
+                const label = (rd && rd.label) || (sd && sd.label) || `Tag ${i+1}`;
+
+                const tr = document.createElement('tr');
+                let html = `<td>${label}</td>`;
+                for (const t of TIMES) {
+                    const rv = rd ? (rd[`running_at_${t}`] ?? 0) : null;
+                    const sv = sd ? (sd[`running_at_${t}`] ?? 0) : null;
+                    const sum = (rv ?? 0) + (sv ?? 0);
+                    const rvCell = rv !== null ? `<span class="number">${rv}</span>` : `<span class="cell-error">–</span>`;
+                    const svCell = sv !== null ? `<span class="number">${sv}</span>` : `<span class="cell-error">–</span>`;
+                    html += `<td class="sep-left">${rvCell}</td><td>${svCell}</td><td class="sum-cell number">${sum}</td>`;
+                }
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            }
+            resultsTable.style.display = 'table';
+        }
+
+        // Auto-load on page open
+        loadData();
+    </script>
+</body>
+</html>

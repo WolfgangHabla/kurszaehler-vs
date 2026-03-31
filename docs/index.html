@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurszähler VS — Q1 2026 (Januar–März)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+        }
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: #1a1a1a;
+        }
+        .subtitle {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+        .week-nav {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+            z-index: 10;
+        }
+        .week-nav select {
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        .week-section {
+            margin-bottom: 2rem;
+        }
+        .week-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: #1a1a1a;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 0.45rem 0.6rem;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+        }
+        th { background: #f9fafb; font-weight: 600; }
+        tr.group-header th {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #374151;
+            background: #f3f4f6;
+            border-bottom: 2px solid #d1d5db;
+        }
+        tr.sub-header th {
+            font-size: 0.75rem;
+            color: #6b7280;
+            background: #f9fafb;
+        }
+        td:first-child, th:first-child { text-align: left; }
+        .sum-cell { font-weight: 700; background: #f0f9ff; }
+        th.sum-col { background: #e0f2fe; color: #0369a1; }
+        .sep-left { border-left: 2px solid #9ca3af; }
+        tr:hover td { background: #f9fafb; }
+        tr:hover td.sum-cell { background: #e0f2fe; }
+        .number { font-variant-numeric: tabular-nums; }
+        .cell-error { color: #9ca3af; font-style: italic; }
+        .generated {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kurszähler Villingen-Schwenningen</h1>
+    <p class="subtitle">Q1 2026 (Januar–März) — Laufende Kurse um 8:00, 9:00 und 13:00 Uhr</p>
+
+    <div class="week-nav">
+        <label for="week-select">Zur Woche springen:</label>
+        <select id="week-select"></select>
+    </div>
+
+    <div id="content"></div>
+
+    <p class="generated">Generiert am 31.03.2026. Datenquellen: DHBW Rapla, HFU StarPlan.</p>
+
+    <script>
+    const DATA = [{"monday": "2025-12-29", "week_label": "KW 1", "rapla": {"week": "KW 1", "days": [{"label": "Mo 29.12.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Di 30.12.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Mi 31.12.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Do 01.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Fr 02.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Sa 03.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}, "starplan": {"week": "KW 1", "days": [{"label": "Mo 29.12.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 1}, {"label": "Di 30.12.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 1}, {"label": "Mi 31.12.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 1}, {"label": "Do 01.01.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 1}, {"label": "Fr 02.01.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 1}, {"label": "Sa 03.01.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 1}]}}, {"monday": "2026-01-05", "week_label": "KW 2", "rapla": {"week": "KW 2", "days": [{"label": "Mo 05.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Di 06.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Mi 07.01.", "total_events": 33, "running_at_0800": 3, "running_at_0900": 17, "running_at_1300": 12}, {"label": "Do 08.01.", "total_events": 53, "running_at_0800": 7, "running_at_0900": 18, "running_at_1300": 17}, {"label": "Fr 09.01.", "total_events": 48, "running_at_0800": 8, "running_at_0900": 21, "running_at_1300": 10}, {"label": "Sa 10.01.", "total_events": 4, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 0}]}, "starplan": {"week": "KW 2", "days": [{"label": "Mo 05.01.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 1}, {"label": "Di 06.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Mi 07.01.", "total_events": 106, "running_at_0800": 19, "running_at_0900": 19, "running_at_1300": 3}, {"label": "Do 08.01.", "total_events": 109, "running_at_0800": 19, "running_at_0900": 19, "running_at_1300": 6}, {"label": "Fr 09.01.", "total_events": 38, "running_at_0800": 11, "running_at_0900": 12, "running_at_1300": 4}, {"label": "Sa 10.01.", "total_events": 7, "running_at_0800": 2, "running_at_0900": 5, "running_at_1300": 5}]}}, {"monday": "2026-01-12", "week_label": "KW 3", "rapla": {"week": "KW 3", "days": [{"label": "Mo 12.01.", "total_events": 41, "running_at_0800": 6, "running_at_0900": 17, "running_at_1300": 13}, {"label": "Di 13.01.", "total_events": 37, "running_at_0800": 4, "running_at_0900": 17, "running_at_1300": 15}, {"label": "Mi 14.01.", "total_events": 39, "running_at_0800": 3, "running_at_0900": 15, "running_at_1300": 15}, {"label": "Do 15.01.", "total_events": 45, "running_at_0800": 8, "running_at_0900": 22, "running_at_1300": 15}, {"label": "Fr 16.01.", "total_events": 34, "running_at_0800": 10, "running_at_0900": 22, "running_at_1300": 24}, {"label": "Sa 17.01.", "total_events": 9, "running_at_0800": 8, "running_at_0900": 9, "running_at_1300": 9}]}, "starplan": {"week": "KW 3", "days": [{"label": "Mo 12.01.", "total_events": 112, "running_at_0800": 11, "running_at_0900": 14, "running_at_1300": 2}, {"label": "Di 13.01.", "total_events": 141, "running_at_0800": 21, "running_at_0900": 23, "running_at_1300": 4}, {"label": "Mi 14.01.", "total_events": 113, "running_at_0800": 20, "running_at_0900": 21, "running_at_1300": 3}, {"label": "Do 15.01.", "total_events": 107, "running_at_0800": 14, "running_at_0900": 15, "running_at_1300": 3}, {"label": "Fr 16.01.", "total_events": 43, "running_at_0800": 13, "running_at_0900": 14, "running_at_1300": 3}, {"label": "Sa 17.01.", "total_events": 2, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 2}]}}, {"monday": "2026-01-19", "week_label": "KW 4", "rapla": {"week": "KW 4", "days": [{"label": "Mo 19.01.", "total_events": 36, "running_at_0800": 3, "running_at_0900": 15, "running_at_1300": 11}, {"label": "Di 20.01.", "total_events": 35, "running_at_0800": 5, "running_at_0900": 17, "running_at_1300": 18}, {"label": "Mi 21.01.", "total_events": 36, "running_at_0800": 4, "running_at_0900": 16, "running_at_1300": 13}, {"label": "Do 22.01.", "total_events": 50, "running_at_0800": 10, "running_at_0900": 25, "running_at_1300": 17}, {"label": "Fr 23.01.", "total_events": 40, "running_at_0800": 14, "running_at_0900": 28, "running_at_1300": 25}, {"label": "Sa 24.01.", "total_events": 9, "running_at_0800": 8, "running_at_0900": 9, "running_at_1300": 9}]}, "starplan": {"week": "KW 4", "days": [{"label": "Mo 19.01.", "total_events": 111, "running_at_0800": 15, "running_at_0900": 17, "running_at_1300": 1}, {"label": "Di 20.01.", "total_events": 119, "running_at_0800": 18, "running_at_0900": 20, "running_at_1300": 3}, {"label": "Mi 21.01.", "total_events": 103, "running_at_0800": 20, "running_at_0900": 21, "running_at_1300": 4}, {"label": "Do 22.01.", "total_events": 106, "running_at_0800": 14, "running_at_0900": 16, "running_at_1300": 7}, {"label": "Fr 23.01.", "total_events": 46, "running_at_0800": 18, "running_at_0900": 19, "running_at_1300": 11}, {"label": "Sa 24.01.", "total_events": 4, "running_at_0800": 3, "running_at_0900": 4, "running_at_1300": 3}]}}, {"monday": "2026-01-26", "week_label": "KW 5", "rapla": {"week": "KW 5", "days": [{"label": "Mo 26.01.", "total_events": 40, "running_at_0800": 2, "running_at_0900": 13, "running_at_1300": 11}, {"label": "Di 27.01.", "total_events": 34, "running_at_0800": 3, "running_at_0900": 17, "running_at_1300": 14}, {"label": "Mi 28.01.", "total_events": 35, "running_at_0800": 5, "running_at_0900": 19, "running_at_1300": 15}, {"label": "Do 29.01.", "total_events": 44, "running_at_0800": 9, "running_at_0900": 21, "running_at_1300": 15}, {"label": "Fr 30.01.", "total_events": 31, "running_at_0800": 12, "running_at_0900": 23, "running_at_1300": 18}, {"label": "Sa 31.01.", "total_events": 10, "running_at_0800": 9, "running_at_0900": 10, "running_at_1300": 10}]}, "starplan": {"week": "KW 5", "days": [{"label": "Mo 26.01.", "total_events": 2, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Di 27.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Mi 28.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Do 29.01.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 0}, {"label": "Fr 30.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Sa 31.01.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}}, {"monday": "2026-02-02", "week_label": "KW 6", "rapla": {"week": "KW 6", "days": [{"label": "Mo 02.02.", "total_events": 36, "running_at_0800": 3, "running_at_0900": 14, "running_at_1300": 14}, {"label": "Di 03.02.", "total_events": 28, "running_at_0800": 5, "running_at_0900": 18, "running_at_1300": 13}, {"label": "Mi 04.02.", "total_events": 38, "running_at_0800": 5, "running_at_0900": 19, "running_at_1300": 19}, {"label": "Do 05.02.", "total_events": 44, "running_at_0800": 12, "running_at_0900": 22, "running_at_1300": 15}, {"label": "Fr 06.02.", "total_events": 45, "running_at_0800": 15, "running_at_0900": 29, "running_at_1300": 26}, {"label": "Sa 07.02.", "total_events": 11, "running_at_0800": 10, "running_at_0900": 11, "running_at_1300": 11}]}, "starplan": {"week": "KW 6", "days": [{"label": "Mo 02.02.", "total_events": 1, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 1}, {"label": "Di 03.02.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 1}, {"label": "Mi 04.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Do 05.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Fr 06.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Sa 07.02.", "total_events": 2, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}}, {"monday": "2026-02-09", "week_label": "KW 7", "rapla": {"week": "KW 7", "days": [{"label": "Mo 09.02.", "total_events": 43, "running_at_0800": 3, "running_at_0900": 18, "running_at_1300": 13}, {"label": "Di 10.02.", "total_events": 35, "running_at_0800": 3, "running_at_0900": 19, "running_at_1300": 15}, {"label": "Mi 11.02.", "total_events": 41, "running_at_0800": 7, "running_at_0900": 23, "running_at_1300": 18}, {"label": "Do 12.02.", "total_events": 35, "running_at_0800": 8, "running_at_0900": 18, "running_at_1300": 13}, {"label": "Fr 13.02.", "total_events": 21, "running_at_0800": 7, "running_at_0900": 17, "running_at_1300": 13}, {"label": "Sa 14.02.", "total_events": 4, "running_at_0800": 3, "running_at_0900": 4, "running_at_1300": 4}]}, "starplan": {"week": "KW 7", "days": [{"label": "Mo 09.02.", "total_events": 1, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 1}, {"label": "Di 10.02.", "total_events": 1, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Mi 11.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Do 12.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Fr 13.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Sa 14.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}}, {"monday": "2026-02-16", "week_label": "KW 8", "rapla": {"week": "KW 8", "days": [{"label": "Mo 16.02.", "total_events": 8, "running_at_0800": 1, "running_at_0900": 2, "running_at_1300": 1}, {"label": "Di 17.02.", "total_events": 9, "running_at_0800": 3, "running_at_0900": 5, "running_at_1300": 3}, {"label": "Mi 18.02.", "total_events": 38, "running_at_0800": 4, "running_at_0900": 16, "running_at_1300": 11}, {"label": "Do 19.02.", "total_events": 50, "running_at_0800": 6, "running_at_0900": 22, "running_at_1300": 16}, {"label": "Fr 20.02.", "total_events": 37, "running_at_0800": 9, "running_at_0900": 23, "running_at_1300": 23}, {"label": "Sa 21.02.", "total_events": 9, "running_at_0800": 5, "running_at_0900": 9, "running_at_1300": 9}]}, "starplan": {"week": "KW 8", "days": [{"label": "Mo 16.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Di 17.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Mi 18.02.", "total_events": 1, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Do 19.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Fr 20.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Sa 21.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}}, {"monday": "2026-02-23", "week_label": "KW 9", "rapla": {"week": "KW 9", "days": [{"label": "Mo 23.02.", "total_events": 40, "running_at_0800": 3, "running_at_0900": 16, "running_at_1300": 15}, {"label": "Di 24.02.", "total_events": 32, "running_at_0800": 3, "running_at_0900": 15, "running_at_1300": 12}, {"label": "Mi 25.02.", "total_events": 34, "running_at_0800": 3, "running_at_0900": 17, "running_at_1300": 12}, {"label": "Do 26.02.", "total_events": 42, "running_at_0800": 6, "running_at_0900": 20, "running_at_1300": 13}, {"label": "Fr 27.02.", "total_events": 34, "running_at_0800": 12, "running_at_0900": 24, "running_at_1300": 20}, {"label": "Sa 28.02.", "total_events": 9, "running_at_0800": 7, "running_at_0900": 9, "running_at_1300": 8}]}, "starplan": {"week": "KW 9", "days": [{"label": "Mo 23.02.", "total_events": 1, "running_at_0800": 0, "running_at_0900": 1, "running_at_1300": 0}, {"label": "Di 24.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Mi 25.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Do 26.02.", "total_events": 1, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Fr 27.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Sa 28.02.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}}, {"monday": "2026-03-02", "week_label": "KW 10", "rapla": {"week": "KW 10", "days": [{"label": "Mo 02.03.", "total_events": 50, "running_at_0800": 4, "running_at_0900": 17, "running_at_1300": 15}, {"label": "Di 03.03.", "total_events": 25, "running_at_0800": 2, "running_at_0900": 16, "running_at_1300": 12}, {"label": "Mi 04.03.", "total_events": 38, "running_at_0800": 2, "running_at_0900": 16, "running_at_1300": 16}, {"label": "Do 05.03.", "total_events": 46, "running_at_0800": 8, "running_at_0900": 23, "running_at_1300": 16}, {"label": "Fr 06.03.", "total_events": 26, "running_at_0800": 9, "running_at_0900": 20, "running_at_1300": 16}, {"label": "Sa 07.03.", "total_events": 4, "running_at_0800": 4, "running_at_0900": 4, "running_at_1300": 4}]}, "starplan": {"week": "KW 10", "days": [{"label": "Mo 02.03.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Di 03.03.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Mi 04.03.", "total_events": 2, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 1}, {"label": "Do 05.03.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Fr 06.03.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}, {"label": "Sa 07.03.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}}, {"monday": "2026-03-09", "week_label": "KW 11", "rapla": {"week": "KW 11", "days": [{"label": "Mo 09.03.", "total_events": 32, "running_at_0800": 4, "running_at_0900": 11, "running_at_1300": 11}, {"label": "Di 10.03.", "total_events": 30, "running_at_0800": 4, "running_at_0900": 16, "running_at_1300": 10}, {"label": "Mi 11.03.", "total_events": 21, "running_at_0800": 2, "running_at_0900": 11, "running_at_1300": 11}, {"label": "Do 12.03.", "total_events": 20, "running_at_0800": 2, "running_at_0900": 10, "running_at_1300": 10}, {"label": "Fr 13.03.", "total_events": 12, "running_at_0800": 0, "running_at_0900": 9, "running_at_1300": 7}, {"label": "Sa 14.03.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}, "starplan": {"week": "KW 11", "days": [{"label": "Mo 09.03.", "total_events": 2, "running_at_0800": 1, "running_at_0900": 2, "running_at_1300": 1}, {"label": "Di 10.03.", "total_events": 3, "running_at_0800": 2, "running_at_0900": 3, "running_at_1300": 1}, {"label": "Mi 11.03.", "total_events": 3, "running_at_0800": 2, "running_at_0900": 3, "running_at_1300": 1}, {"label": "Do 12.03.", "total_events": 3, "running_at_0800": 1, "running_at_0900": 3, "running_at_1300": 1}, {"label": "Fr 13.03.", "total_events": 4, "running_at_0800": 2, "running_at_0900": 3, "running_at_1300": 2}, {"label": "Sa 14.03.", "total_events": 1, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}}, {"monday": "2026-03-16", "week_label": "KW 12", "rapla": {"week": "KW 12", "days": [{"label": "Mo 16.03.", "total_events": 10, "running_at_0800": 1, "running_at_0900": 8, "running_at_1300": 3}, {"label": "Di 17.03.", "total_events": 5, "running_at_0800": 1, "running_at_0900": 5, "running_at_1300": 3}, {"label": "Mi 18.03.", "total_events": 7, "running_at_0800": 0, "running_at_0900": 5, "running_at_1300": 2}, {"label": "Do 19.03.", "total_events": 5, "running_at_0800": 0, "running_at_0900": 4, "running_at_1300": 3}, {"label": "Fr 20.03.", "total_events": 9, "running_at_0800": 0, "running_at_0900": 8, "running_at_1300": 3}, {"label": "Sa 21.03.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}, "starplan": {"week": "KW 12", "days": [{"label": "Mo 16.03.", "total_events": 99, "running_at_0800": 14, "running_at_0900": 22, "running_at_1300": 10}, {"label": "Di 17.03.", "total_events": 92, "running_at_0800": 19, "running_at_0900": 22, "running_at_1300": 12}, {"label": "Mi 18.03.", "total_events": 85, "running_at_0800": 25, "running_at_0900": 25, "running_at_1300": 7}, {"label": "Do 19.03.", "total_events": 85, "running_at_0800": 16, "running_at_0900": 16, "running_at_1300": 5}, {"label": "Fr 20.03.", "total_events": 51, "running_at_0800": 14, "running_at_0900": 15, "running_at_1300": 4}, {"label": "Sa 21.03.", "total_events": 1, "running_at_0800": 1, "running_at_0900": 1, "running_at_1300": 1}]}}, {"monday": "2026-03-23", "week_label": "KW 13", "rapla": {"week": "KW 13", "days": [{"label": "Mo 23.03.", "total_events": 6, "running_at_0800": 1, "running_at_0900": 5, "running_at_1300": 1}, {"label": "Di 24.03.", "total_events": 7, "running_at_0800": 0, "running_at_0900": 5, "running_at_1300": 4}, {"label": "Mi 25.03.", "total_events": 6, "running_at_0800": 0, "running_at_0900": 4, "running_at_1300": 2}, {"label": "Do 26.03.", "total_events": 8, "running_at_0800": 1, "running_at_0900": 5, "running_at_1300": 4}, {"label": "Fr 27.03.", "total_events": 2, "running_at_0800": 0, "running_at_0900": 2, "running_at_1300": 1}, {"label": "Sa 28.03.", "total_events": 0, "running_at_0800": 0, "running_at_0900": 0, "running_at_1300": 0}]}, "starplan": {"week": "KW 13", "days": [{"label": "Mo 23.03.", "total_events": 119, "running_at_0800": 15, "running_at_0900": 18, "running_at_1300": 1}, {"label": "Di 24.03.", "total_events": 99, "running_at_0800": 18, "running_at_0900": 21, "running_at_1300": 3}, {"label": "Mi 25.03.", "total_events": 72, "running_at_0800": 20, "running_at_0900": 20, "running_at_1300": 5}, {"label": "Do 26.03.", "total_events": 94, "running_at_0800": 17, "running_at_0900": 17, "running_at_1300": 5}, {"label": "Fr 27.03.", "total_events": 45, "running_at_0800": 17, "running_at_0900": 19, "running_at_1300": 2}, {"label": "Sa 28.03.", "total_events": 5, "running_at_0800": 3, "running_at_0900": 3, "running_at_1300": 2}]}}];
+
+    const TIMES = ['0800', '0900', '1300'];
+    const content = document.getElementById('content');
+    const weekSelect = document.getElementById('week-select');
+
+    DATA.forEach((week, idx) => {
+        // Dropdown option
+        const opt = document.createElement('option');
+        opt.value = 'week-' + idx;
+        opt.textContent = week.week_label || ('KW ' + week.monday);
+        weekSelect.appendChild(opt);
+
+        // Week section
+        const section = document.createElement('div');
+        section.className = 'week-section';
+        section.id = 'week-' + idx;
+
+        const title = document.createElement('h2');
+        title.className = 'week-title';
+        title.textContent = week.week_label || ('Woche ' + week.monday);
+        section.appendChild(title);
+
+        const table = document.createElement('table');
+        table.innerHTML = `
+            <thead>
+                <tr class="group-header">
+                    <th rowspan="2">Tag</th>
+                    <th colspan="3" class="sep-left">Um 8:00</th>
+                    <th colspan="3" class="sep-left">Um 9:00</th>
+                    <th colspan="3" class="sep-left">Um 13:00</th>
+                </tr>
+                <tr class="sub-header">
+                    <th class="sep-left">DHBW</th><th>HFU</th><th class="sum-col">&Sigma;</th>
+                    <th class="sep-left">DHBW</th><th>HFU</th><th class="sum-col">&Sigma;</th>
+                    <th class="sep-left">DHBW</th><th>HFU</th><th class="sum-col">&Sigma;</th>
+                </tr>
+            </thead>`;
+
+        const tbody = document.createElement('tbody');
+        const raplaDays = (week.rapla && week.rapla.days) || [];
+        const starplanDays = (week.starplan && week.starplan.days) || [];
+        const numDays = Math.max(raplaDays.length, starplanDays.length, 5);
+
+        for (let i = 0; i < numDays; i++) {
+            const rd = raplaDays[i];
+            const sd = starplanDays[i];
+            const label = (rd && rd.label) || (sd && sd.label) || ('Tag ' + (i+1));
+
+            const tr = document.createElement('tr');
+            let html = '<td>' + label + '</td>';
+            for (const t of TIMES) {
+                const rv = rd ? (rd['running_at_' + t] ?? 0) : null;
+                const sv = sd ? (sd['running_at_' + t] ?? 0) : null;
+                const sum = (rv ?? 0) + (sv ?? 0);
+                const rvCell = rv !== null
+                    ? '<span class="number">' + rv + '</span>'
+                    : '<span class="cell-error">&ndash;</span>';
+                const svCell = sv !== null
+                    ? '<span class="number">' + sv + '</span>'
+                    : '<span class="cell-error">&ndash;</span>';
+                html += '<td class="sep-left">' + rvCell + '</td>'
+                      + '<td>' + svCell + '</td>'
+                      + '<td class="sum-cell number">' + sum + '</td>';
+            }
+            tr.innerHTML = html;
+            tbody.appendChild(tr);
+        }
+
+        table.appendChild(tbody);
+        section.appendChild(table);
+        content.appendChild(section);
+    });
+
+    weekSelect.addEventListener('change', function() {
+        document.getElementById(this.value).scrollIntoView({ behavior: 'smooth' });
+    });
+    </script>
+</body>
+</html>
