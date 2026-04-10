@@ -47,7 +47,10 @@ ermöglicht. Die Parameter `day`, `month`, `year` bestimmen die angezeigte Woche
 
 6. **Zählung**: Für jeden Wochentag wird gezählt, wie viele Kurse zu den drei
    Prüfzeitpunkten (8:00, 9:00, 13:00) laufen. Ein Kurs "läuft" zu einem
-   Zeitpunkt, wenn `Startzeit <= Prüfzeitpunkt <= Endzeit`.
+   Zeitpunkt, wenn `Startzeit <= Prüfzeitpunkt < Endzeit` (halboffenes
+   Intervall — ein Kurs, der exakt um 13:00 endet, wird beim Prüfzeitpunkt
+   13:00 **nicht** mehr mitgezählt, damit der gleichzeitig startende
+   Nachmittagsblock nicht doppelt erfasst wird).
 
 ### Besonderheiten
 
@@ -162,7 +165,8 @@ gleichzeitig laufen:
 | 9:00 Uhr  | Häufigster Vorlesungsbeginn |
 | 13:00 Uhr | Nachmittagsvorlesungen |
 
-Ein Kurs wird gezählt, wenn `Startzeit <= Prüfzeitpunkt <= Endzeit`.
+Ein Kurs wird gezählt, wenn `Startzeit <= Prüfzeitpunkt < Endzeit`
+(halboffenes Intervall, damit an Blockgrenzen nicht doppelt gezählt wird).
 
 ### Statische Quartalsseite
 

@@ -188,7 +188,7 @@ def parse_rapla_week(day, month, year):
                 counts[key] = sum(
                     1
                     for start, end in events
-                    if time_to_minutes(start) <= check_min <= time_to_minutes(end)
+                    if time_to_minutes(start) <= check_min < time_to_minutes(end)
                 )
         total = 0 if is_holiday else len(events)
         results.append({"label": label, "total_events": total, **counts})
@@ -312,7 +312,7 @@ def parse_starplan_week(day, month, year):
                 counts[key] = sum(
                     1
                     for start, end in events
-                    if time_to_minutes(start) <= check_min <= time_to_minutes(end)
+                    if time_to_minutes(start) <= check_min < time_to_minutes(end)
                 )
         total = 0 if is_holiday else len(events)
         results.append({"label": label, "total_events": total, **counts})
