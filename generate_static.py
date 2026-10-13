@@ -259,10 +259,31 @@ HTML_TEMPLATE = """\
 """
 
 
-def generate(year, quarter, output_path):
-    label, _, _ = QUARTER_MONTHS[quarter]
-    title = f"Q{quarter} {year} ({label})"
-    mondays = list(mondays_in_quarter(year, quarter))
+def parse_quarter(s):
+    parts = s.split("-Q")
+    if len(parts) != 2:
+        raise ValueError(f"Quartal muss im Format YYYY-QN sein (z.B. 2026-Q2), war: {s}")
+    year = int(parts[0])
+    quarter = int(parts[1])
+    if quarter not in (1, 2, 3, 4):
+        raise ValueError(f"Quartal muss 1-4 sein, war: {quarter}")
+    return year, quarter
+
+
+def generate(quarters, output_path, title_override=None):
+    """Generate one HTML file covering one or more quarters (chronological)."""
+    if len(quarters) == 1:
+        year, quarter = quarters[0]
+        label, _, _ = QUARTER_MONTHS[quarter]
+        title = f"Q{quarter} {year} ({label})"
+    else:
+        y0, q0 = quarters[0]
+        y1, q1 = quarters[-1]
+        title = title_override or f"Q{q0} {y0} – Q{q1} {y1}"
+
+    mondays = []
+    for year, quarter in quarters:
+        mondays.extend(mondays_in_quarter(year, quarter))
 
     print(f"Generiere {title}: {len(mondays)} Wochen")
     all_weeks = []
@@ -291,28 +312,35 @@ def generate(year, quarter, output_path):
 
 def main():
     parser = argparse.ArgumentParser(description="Statische Quartals-Seite generieren")
-    parser.add_argument(
-        "--quarter", required=True,
-        help="Quartal im Format YYYY-QN, z.B. 2026-Q2",
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--quarter",
+        help="Einzelnes Quartal im Format YYYY-QN, z.B. 2026-Q2",
+    )
+    group.add_argument(
+        "--quarters", nargs="+",
+        help="Mehrere Quartale (chronologisch), z.B. 2025-Q4 2026-Q1 2026-Q2 2026-Q3",
     )
     parser.add_argument(
         "--output", default="docs/index.html",
         help="Ausgabedatei (Standard: docs/index.html)",
     )
+    parser.add_argument(
+        "--title",
+        help="Optionaler Titel (bei --quarters).",
+    )
     args = parser.parse_args()
 
-    parts = args.quarter.split("-Q")
-    if len(parts) != 2:
-        print("Fehler: Quartal muss im Format YYYY-QN sein (z.B. 2026-Q2)")
+    try:
+        if args.quarter:
+            quarters = [parse_quarter(args.quarter)]
+        else:
+            quarters = [parse_quarter(q) for q in args.quarters]
+    except ValueError as e:
+        print(f"Fehler: {e}")
         sys.exit(1)
 
-    year = int(parts[0])
-    quarter = int(parts[1])
-    if quarter not in (1, 2, 3, 4):
-        print("Fehler: Quartal muss 1-4 sein")
-        sys.exit(1)
-
-    generate(year, quarter, args.output)
+    generate(quarters, args.output, title_override=args.title)
 
 
 if __name__ == "__main__":

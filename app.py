@@ -11,8 +11,8 @@ app = Flask(__name__)
 RAPLA_BASE = (
     "https://rapla.dhbw.de/rapla/calendar?"
     "key=3m0O8EVJ2EaIYRGKNLrg04l51NVqdHUdqmVlRsPBk79i5RvkbUkRU3mkHJcmcGYy"
-    "2iSBBS-IDTcajBP0hVZOvO4-EMZYgpSc7lj1FTS_4NLq5fb-ZVXqOA_7GxQZsYWjLmdX"
-    "fLQ4PL68OAjCUe1vG-3T23NxGXJBNLjWKQqDU1o"
+    "8WlicPoKQuvZNqQURiH_Z2bg0Ros1L_0WSs5gWSixDdMyMROLjHZYu-uT6hikekVi6VD"
+    "HzG8d6k6Hc3662-oZfz6OGTTQwBxJ6t7g_qPS1g"
     "&salt=-888929980"
 )
 
